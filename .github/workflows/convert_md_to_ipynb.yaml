@@ -1,0 +1,52 @@
+# Converts .md files to .ipynb
+name: Convert md files to ipynb
+on:
+  push:
+    branches:
+      - sync
+jobs:
+  convert-ipynb:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install jupytext
+        run: |
+          pip install jupytext
+
+      - uses: webfactory/ssh-agent@v0.4.1
+        with:
+          ssh-private-key: ${{ secrets.TUTORIALS_SSH_KEY }}
+
+      # We need to set this to ensure that `release-it` can push the commit
+      # https://github.com/release-it/release-it/blob/master/docs/ci.md#github-actions
+      - name: git config
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+      - name: Convert .md files to .ipynb and push to main branch
+        run: |
+          # Checkout temporary branch
+          git checkout --orphan tmp
+
+          # convert .md to .ipynb
+          jupytext --to ipynb [0-9]*.md
+
+          # remove .md files
+          rm  [0-9]*.md
+
+          # Add all files to branch
+          git add -A
+
+          # commit .ipynb files
+          git commit -m 'Bitfount tutorials'
+
+          # rename current branch main
+          git branch -m main
+
+          # Push changes to main
+          git push -f -u git@github.com:bitfount/tutorials.git main
