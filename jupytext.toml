@@ -1,0 +1,4 @@
+# This version is needed for the tutorials repo, but should be the same as bitfount/jupytext.toml
+
+# Ensure that docusaurus front matter is not shown as a cell in the rendered notebooks
+root_level_metadata_as_raw_cell = false
